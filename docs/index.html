@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>entri: first-week user engagement analysis</title>
+<meta name="description" content="An exploratory pandas analysis of how new users of a learning platform behave in their first week and how that relates to a first purchase.">
+<style>
+  :root {
+    --bg: #fafaf7; --surface: #ffffff; --ink: #1d2433; --muted: #5b6478; --line: #e3e5ea;
+    --accent: #1f5fbf; --accent-soft: #e8f0fc; --tag-bg: #eef1f5; --warn: #8a5a00; --warn-bg: #fff6e0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12161d; --surface: #1a2029; --ink: #e8ebf0; --muted: #9aa4b6; --line: #2b3340;
+      --accent: #7fb0ff; --accent-soft: #1b2a42; --tag-bg: #242c38; --warn: #f0c56a; --warn-bg: #2d2615;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.6 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 16px; }
+  header { padding: 40px 0 24px; border-bottom: 1px solid var(--line); }
+  .eyebrow { margin: 0 0 8px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  h1 { margin: 0 0 12px; font-size: clamp(1.6rem, 5.5vw, 2.3rem); line-height: 1.2; }
+  h2 { margin: 0 0 12px; font-size: clamp(1.25rem, 4vw, 1.5rem); line-height: 1.3; }
+  h3 { margin: 0 0 4px; font-size: 1rem; }
+  .lede { margin: 0; font-size: 1.05rem; color: var(--muted); max-width: 62ch; }
+  section { padding: 32px 0; border-bottom: 1px solid var(--line); }
+  p { margin: 0 0 12px; max-width: 70ch; }
+  ul { margin: 0 0 12px; padding-left: 1.2em; max-width: 70ch; }
+  li { margin-bottom: 6px; }
+  a { color: var(--accent); overflow-wrap: anywhere; }
+  .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--tag-bg);
+    color: var(--muted); font-size: 12px; line-height: 1.5; white-space: nowrap;
+  }
+  .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin: 16px 0 8px; padding: 0; list-style: none; }
+  .stats li { margin: 0; padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; max-width: none; }
+  .stats b { display: block; font-size: 1.7rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .stats span { display: block; margin-top: 4px; font-size: 13px; color: var(--muted); line-height: 1.35; }
+  .note { margin: 16px 0; padding: 12px 14px; border-radius: 10px; background: var(--warn-bg); color: var(--warn); font-size: 14px; max-width: 70ch; }
+  .charts { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 16px; }
+  figure { margin: 0; padding: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+  figure img { display: block; width: 100%; height: auto; border-radius: 4px; background: #fff; }
+  figcaption { margin-top: 10px; font-size: 14px; color: var(--muted); }
+  figcaption b { color: var(--ink); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 600; background: var(--tag-bg); }
+  .table-scroll { overflow-x: auto; }
+  .steps { counter-reset: s; list-style: none; padding: 0; }
+  .steps li { counter-increment: s; position: relative; padding-left: 38px; }
+  .steps li::before {
+    content: counter(s); position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 13px; display: grid; place-items: center;
+  }
+  footer { padding: 28px 0 48px; font-size: 14px; color: var(--muted); }
+  footer p { max-width: none; }
+  @media (min-width: 720px) {
+    .charts { grid-template-columns: 1fr 1fr; }
+    header { padding-top: 56px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Exploratory data analysis &middot; pandas</p>
+  <h1>How do new learners behave in their first week?</h1>
+  <p class="lede">A descriptive look at a learning platform's users: what they subscribe to, attempt and watch in the first seven days after joining, and how that relates to a first purchase.</p>
+</header>
+
+<main>
+<section id="problem">
+  <h2>The problem</h2>
+  <p>Some users of the platform join and never pay, others pay. The analysis asks which first-week behaviours stand out and how paid and unpaid users differ. The first week is the join date plus six days.</p>
+  <ul>
+    <li>How many users buy within their first week?</li>
+    <li>How many tracks (course subjects) do they subscribe to?</li>
+    <li>How much do they attempt, pause and complete quizzes?</li>
+    <li>How often do they watch videos, and how much of each video?</li>
+    <li>Who are the heaviest quiz and study-card users?</li>
+  </ul>
+</section>
+
+<section id="method">
+  <h2>Method</h2>
+  <ol class="steps">
+    <li>Load five CSV files: track subscriptions, first purchases, quiz attempts, study-card events and video watches.</li>
+    <li>Separate users with no first-purchase date (unpaid) from those with one (paid) and attach each user's join date.</li>
+    <li>Keep events inside the first-week window.</li>
+    <li>Aggregate per user with <code>groupby</code>: tracks, quiz rows per status, distinct watch days, completions, study-card events.</li>
+    <li>Flag users above simple thresholds and plot the per-user counts.</li>
+  </ol>
+  <p>There is no statistical test and no model. The notebook is <code>entri .ipynb</code> in the repository.</p>
+</section>
+
+<section id="findings">
+  <h2>Findings</h2>
+  <p><span class="tag">Reported (notebook output)</span> Each number below is printed in the notebook's saved output. The notebook was re-run on 2026-10-13 and repeated them.</p>
+  <ul class="stats">
+    <li><b>576</b><span>users with a recorded first purchase</span></li>
+    <li><b>478</b><span>of them bought within 7 days of joining</span></li>
+    <li><b>424</b><span>users with no first-purchase date</span></li>
+    <li><b>16</b><span>unpaid users with more than 2 tracks</span></li>
+    <li><b>21</b><span>paid users with more than 4 tracks in week one</span></li>
+    <li><b>630</b><span>users attempted a quiz; 126 of them are unpaid</span></li>
+    <li><b>528</b><span>users completed a quiz at least once</span></li>
+    <li><b>56</b><span>users completed more than 50 attempts</span></li>
+    <li><b>13</b><span>users watched videos on more than one day of week one</span></li>
+    <li><b>386</b><span>users have study-card activity</span></li>
+  </ul>
+  <p>Quiz attempts by status: <b>13,833</b> complete, <b>6,950</b> created, <b>489</b> paused, <b>147</b> in progress.</p>
+  <p>In short, most users with a purchase bought in week one (478 of 576), and a small group of users accounts for very heavy quiz and study-card activity. The notebook does not test whether any behaviour predicts buying.</p>
+</section>
+
+<section id="charts">
+  <h2>Charts from the notebook</h2>
+  <p>Exported unchanged from the notebook's saved outputs. Each line plots a per-user count. Except for the first chart, which is drawn against user ID, the x axis is a row position in a table, not time. The charts show spread and outliers, not trends.</p>
+  <div class="charts">
+    <figure>
+      <img src="img/tracks-per-user.png" width="369" height="248" alt="Line chart of track subscriptions per user plotted against user ID, mostly 1 to 4, with a few spikes up to about 56" loading="lazy">
+      <figcaption><b>Track subscriptions per user</b>, against user ID. Most users have a handful; a few have many.</figcaption>
+    </figure>
+    <figure>
+      <img src="img/unpaid-tracks.png" width="362" height="248" alt="Line chart of track subscriptions per unpaid user, mostly 1 or 2, with peaks up to 6" loading="lazy">
+      <figcaption><b>Tracks per unpaid user.</b> Mostly 1 or 2, peaking at 6; 16 unpaid users have more than 2.</figcaption>
+    </figure>
+    <figure>
+      <img src="img/paid-tracks.png" width="377" height="248" alt="Line chart of track subscriptions per paid user in their first week, mostly 1 to 3, with spikes up to about 56" loading="lazy">
+      <figcaption><b>Tracks per paid user, first week.</b> 21 paid users have more than 4; the largest value is about 56.</figcaption>
+    </figure>
+    <figure>
+      <img src="img/unpaid-quiz.png" width="375" height="248" alt="Line chart of quiz rows per unpaid user and status, mostly small, with peaks up to about 370" loading="lazy">
+      <figcaption><b>Quiz rows per unpaid user and status.</b> 9 unpaid users have more than 10 in one status; the peak is about 370.</figcaption>
+    </figure>
+    <figure>
+      <img src="img/video-days.png" width="378" height="248" alt="Line chart of distinct days with video watching in the first week for 20 users, between 1 and 18" loading="lazy">
+      <figcaption><b>Days with video watching, first week.</b> Values run from 1 to 18; 13 of the 20 users watched on more than one day.</figcaption>
+    </figure>
+    <figure>
+      <img src="img/quiz-completions.png" width="381" height="248" alt="Line chart of completed quiz attempts per user with one very large spike above 2,500" loading="lazy">
+      <figcaption><b>Completed quiz attempts per user.</b> One user is far above the rest; 56 users exceed 50.</figcaption>
+    </figure>
+    <figure>
+      <img src="img/studycard.png" width="368" height="249" alt="Line chart of study-card events per user and track, ranging from 2 to 34" loading="lazy">
+      <figcaption><b>Study-card events per user and track.</b> Values run from 2 to 34.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="limitations">
+  <h2>Limitations</h2>
+  <ul>
+    <li>Descriptive only: no tests, intervals or causal claims.</li>
+    <li>Thresholds (2 or 4 tracks, 30% or 80% of a video, 10 or 50 attempts) are arbitrary.</li>
+    <li>Some notebook comments disagree with the notebook's printed outputs. This page uses the printed outputs.</li>
+    <li>On current pandas (3.x) one figure changes: unpaid quiz users become 83 instead of 126, because the text <code>None</code> in one column is now read as missing. The pinned pandas 1.5.3 reproduces 126.</li>
+    <li>One company and a few months of 2021 data, so the findings do not generalise.</li>
+  </ul>
+  <p>Next steps: label the axes and plot against ordered values, compare paid and unpaid users with a test or bootstrap interval, then fit a simple conversion model with a time-based split.</p>
+</section>
+
+<section id="data">
+  <h2>Data and licence</h2>
+  <p>The data is a company-provided user-activity dataset (&copy; its owner), credited in <a href="https://github.com/Janeferdinant/entri/blob/main/THIRD_PARTY_NOTICES.md">THIRD_PARTY_NOTICES.md</a>. Users appear only as numeric pseudonymous IDs, with no names or contact details. It is not the repository owner's own dataset.</p>
+  <p>The analysis and code are &copy; Jane Rose Ferdinant, licensed <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/">CC BY-NC-ND 4.0</a>. The licence does not cover the data.</p>
+  <p><a href="https://github.com/Janeferdinant/entri">Notebook, data files and README on GitHub</a></p>
+</section>
+</main>
+
+<footer>
+  <p>Jane Rose Ferdinant &middot; <a href="https://janeferdinant.vercel.app">Portfolio</a> &middot; <a href="https://www.linkedin.com/in/janerosenf/">LinkedIn</a></p>
+</footer>
+
+</div>
+</body>
+</html>
