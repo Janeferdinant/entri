@@ -1,0 +1,10 @@
+# Files the notebook writes into the working directory (subsets of the data)
+COMPLETE.csv
+CREATE.csv
+PAUSE.csv
+PROGRESS.csv
+
+.ipynb_checkpoints/
+__pycache__/
+.venv/
+entri.executed.ipynb
