@@ -1,6 +1,6 @@
 # entri: first-week engagement and purchase analysis of a learning platform's users
 
-[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+[![License: CC BY-NC-ND 4.0](https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 
 ## Overview
 
@@ -40,7 +40,7 @@ No statistical test or model is used.
 | `user_studycard_data.csv` | 3,480 | 386 |
 | `user_video_activity_data.csv` | 12,907 | 755 |
 
-This is a company-provided dataset (© its owner), credited in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). It is user-activity data with numeric pseudonymous user IDs and no names, e-mail addresses or other contact details. The repository owner has confirmed that it may stay public here. The CC BY-NC-SA 4.0 license in this repository covers the analysis and code, not the data. No new data was added in this update, and the dataset is not the repository owner's own.
+This is a company-provided dataset (© its owner), credited in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). It is user-activity data with numeric pseudonymous user IDs and no names, e-mail addresses or other contact details. The repository owner has confirmed that it may stay public here. The CC BY-NC-ND 4.0 license in this repository covers the analysis and code, not the data. No new data was added in this update, and the dataset is not the repository owner's own.
 
 ## Results
 
@@ -123,7 +123,7 @@ The same first-week funnel view is standard product analytics for subscription a
 
 ## License
 
-Original work © Jane Rose Ferdinant, licensed CC BY-NC-SA 4.0. Third-party components retain their own licenses; see THIRD_PARTY_NOTICES.md. The license covers the analysis and code only, not the data.
+Original work © Jane Rose Ferdinant, licensed CC BY-NC-ND 4.0. Third-party components retain their own licenses; see THIRD_PARTY_NOTICES.md. The license covers the analysis and code only, not the data.
 
 ## Author
 
